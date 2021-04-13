@@ -1,0 +1,25 @@
+#pragma once
+
+#include <YAR/Picture.hpp>
+#include <glm/vec3.hpp>
+#include <vector>
+
+namespace yar {
+class Screen {
+ private:
+  yar::Picture m_picture;
+  std::vector<std::vector<float>> m_zbuf;
+  size_t m_width = 0;
+  size_t m_height = 0;
+
+ public:
+  Screen(size_t width, size_t height);
+
+  size_t get_width() const;
+  size_t get_height() const;
+
+  const yar::Picture& get_picture() const;
+
+  void set_pixel(size_t x, size_t y, Color c);
+};
+}  // namespace yar

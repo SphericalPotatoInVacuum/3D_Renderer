@@ -1,3 +1,9 @@
 [submodule "SFML"]
 	path = SFML
 	url = git@github.com:SFML/SFML.git
+[submodule "libs/SFML"]
+	path = libs/SFML
+	url = git@github.com:SFML/SFML.git
+[submodule "libs/glm"]
+	path = libs/glm
+	url = git@github.com:g-truc/glm.git
