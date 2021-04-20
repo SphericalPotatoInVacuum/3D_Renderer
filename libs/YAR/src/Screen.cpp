@@ -17,3 +17,7 @@ const yar::Picture& yar::Screen::get_picture() const {
 void yar::Screen::set_pixel(size_t x, size_t y, Color c) {
   m_picture(y, x) = c;
 }
+
+void yar::Screen::clear() {
+  m_picture.clear();
+}

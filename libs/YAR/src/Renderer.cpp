@@ -2,47 +2,69 @@
 
 #include <YAR/Renderer.hpp>
 #include <algorithm>
+#include <cmath>
 
 float frand() {
   return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
 
-yar::Renderer::Renderer(size_t width, size_t height)
-    : m_screen(width, height), m_width(width), m_height(height) {
-  float aspect_ratio = static_cast<float>(width) / static_cast<float>(height);
-  m_camera = Camera(glm::vec4(0), glm::vec4(0), glm::radians(70.0f), 1.0f,
-                    100.0f, aspect_ratio, yar::ProjectionType::PERSPECTIVE);
-  std::vector<yar::Triangle> triangles = {
-      {{-1, 1, -1, 1}, {1, 1, -1, 1}, {0, 0, -1, 1}},
-      {{1, 1, -1, 1}, {1, 1, 1, 1}, {1, 0, 0, 1}}};
-  m_world.add_object(yar::Object({0, 0, 0}, {0, 0, 0}, triangles));
-}
+yar::Renderer::Renderer(yar::World& world, yar::Camera& camera, size_t width,
+                        size_t height)
+    : m_world(world),
+      m_camera(camera),
+      m_screen(width, height),
+      m_width(width),
+      m_height(height) {}
 
 const yar::Picture& yar::Renderer::render() {
-  const std::vector<yar::Triangle>& triangles = m_world.get_triangles();
-  for (const yar::Triangle& triangle : triangles) {
-    draw(triangle);
+  m_screen.clear();
+  glm::mat4 view = glm::inverse(m_camera.get_transform_matrix());
+  glm::mat4 projection = m_camera.get_projection_matrix();
+  glm::mat4 mvp;
+  for (yar::Object* object_ptr : m_world.get_objects()) {
+    glm::mat4 model = object_ptr->get_transform_matrix();
+    mvp = projection * view * model;
+    for (yar::Triangle triangle : object_ptr->get_triangles()) {
+      triangle = triangle * mvp;
+      triangle.normalize();
+      draw(triangle);
+    }
   }
 
   return m_screen.get_picture();
 }
 
+float truncate(float x, float min, float max) {
+  if (x < min) {
+    x = min;
+  }
+  if (x > max) {
+    x = max;
+  }
+  return x;
+}
+
 void yar::Renderer::draw(const yar::Triangle& triangle) {
   glm::vec4 box = triangle.get_bounding_box();
-  size_t minx = (box[0] + 1) / 2 * m_width;
-  size_t maxx = (box[1] + 1) / 2 * m_width;
-  size_t miny = (box[2] + 1) / 2 * m_height;
-  size_t maxy = (box[3] + 1) / 2 * m_height;
+  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width;
+  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width;
+  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height;
+  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height;
+
+  assert(minx >= 0 && minx <= m_width);
+  assert(maxx >= 0 && maxx <= m_width);
+  assert(miny >= 0 && miny <= m_height);
+  assert(maxy >= 0 && maxy <= m_height);
 
   yar::Color color = triangle.get_color();
 
-  for (size_t x = minx; x <= maxx; ++x) {
-    for (size_t y = miny; y <= maxy; ++y) {
+  for (int64_t x = 0; x < m_width; ++x) {
+    for (int64_t y = 0; y < m_height; ++y) {
       float xf = static_cast<float>(x);
       float yf = static_cast<float>(y);
       glm::vec2 point(xf / m_width * 2 - 1, yf / m_height * 2 - 1);
       if (triangle.is_inside(point)) {
-        m_screen.set_pixel(x, m_height - y, color);
+        m_screen.set_pixel(x, m_height - y - 1, color);
       }
     }
   }

@@ -1,16 +1,17 @@
 #pragma once
 
 #include <YAR/Object.hpp>
+#include <memory>
 #include <vector>
 
 namespace yar {
 class World {
  private:
-  std::vector<Object> m_objects;
+  std::vector<Object *> m_objects;
 
  public:
-  void add_object(const yar::Object object);
+  void add_object(Object *object);
 
-  std::vector<Triangle> get_triangles() const;
+  const std::vector<Object *> get_objects() const;
 };
 }  // namespace yar

@@ -1,17 +1,24 @@
+#include <string.h>
+
 #include <YAR/Picture.hpp>
 #include <random>
 
 yar::Picture::Picture(size_t width, size_t height)
     : m_width(width),
       m_height(height),
-      m_data_ptr(std::make_unique<Color[]>(width * height)) {
+      m_data_ptr((yar::Color*)malloc(width * height * sizeof(yar::Color)),
+                 free) {
   for (size_t i = 0; i < width * height; ++i) {
-    m_data_ptr[i] = {rand() % 255, rand() % 255, rand() % 255};
+    m_data_ptr.get()[i] = {0, 0, 0};
   }
 }
 
+void yar::Picture::clear() {
+  memset(m_data_ptr.get(), 0, m_width * m_height * sizeof(yar::Color));
+}
+
 yar::Color& yar::Picture::operator()(size_t row, size_t col) {
-  return m_data_ptr[row * m_width + col];
+  return m_data_ptr.get()[row * m_width + col];
 }
 
 const yar::Color* yar::Picture::get_pixels() const {

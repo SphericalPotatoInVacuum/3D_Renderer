@@ -6,7 +6,7 @@ yar::Object::Object(glm::vec3 pos, glm::vec3 rot,
 
 yar::Object::Object(glm::vec3 pos, glm::vec3 rot,
                     std::initializer_list<yar::Triangle> list)
-    : m_triangles(list) {}
+    : Entity(pos, rot), m_triangles(list) {}
 
 const std::vector<yar::Triangle>& yar::Object::get_triangles() const {
   return m_triangles;

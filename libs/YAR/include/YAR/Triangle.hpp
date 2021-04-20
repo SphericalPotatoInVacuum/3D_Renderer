@@ -21,10 +21,15 @@ class Triangle {
  public:
   Triangle(std::array<glm::vec4, 3> points);
   Triangle(std::initializer_list<glm::vec4> list);
+  Triangle(std::array<glm::vec4, 3> points, Color color);
+  Triangle(std::initializer_list<glm::vec4> list, Color color);
 
-  yar::Triangle operator*(const glm::mat4 &mat);
+  yar::Triangle operator*(const glm::mat4 &mat) const;
 
   yar::Color get_color() const;
+  std::array<glm::vec4, 3> get_points() const;
+
+  void normalize();
 
   glm::vec4 get_bounding_box() const;
   bool is_inside(glm::vec2 point) const;

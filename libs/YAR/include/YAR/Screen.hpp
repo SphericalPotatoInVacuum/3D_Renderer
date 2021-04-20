@@ -18,6 +18,7 @@ class Screen {
   size_t get_width() const;
   size_t get_height() const;
 
+  void clear();
   const yar::Picture& get_picture() const;
 
   void set_pixel(size_t x, size_t y, Color c);

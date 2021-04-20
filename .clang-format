@@ -1,0 +1,8 @@
+# BreakBeforeBraces: Attach
+# AccessModifierOffset: -3
+# IndentWidth: 4
+AllowShortFunctionsOnASingleLine: Empty
+# ColumnLimit: 100
+# AlignTrailingComments: true
+# SpacesBeforeTrailingComments: 2
+BasedOnStyle: Google

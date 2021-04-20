@@ -9,15 +9,15 @@ namespace yar {
 class Renderer {
  public:
   Renderer();
-  Renderer(size_t width, size_t height);
+  Renderer(yar::World& world, yar::Camera& camera, size_t width, size_t height);
 
   const Picture& render();
 
  private:
   void draw(const Triangle& triangle);
 
-  yar::World m_world;
-  yar::Camera m_camera;
+  yar::World& m_world;
+  yar::Camera& m_camera;
   yar::Screen m_screen;
 
   size_t m_width;

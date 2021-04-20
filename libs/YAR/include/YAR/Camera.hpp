@@ -8,11 +8,11 @@ namespace yar {
 
 enum class ProjectionType { PERSPECTIVE, ORTHOGRAPHIC };
 
-class Camera : yar::Entity {
+class Camera : public yar::Entity {
  private:
   float m_fov = glm::radians(70.0f);
-  float m_near = 1.0f;
-  float m_far = 100.0f;
+  float m_near = -0.1f;
+  float m_far = -100.0f;
   float m_aspect_ratio = 1.0f;
   yar::ProjectionType m_projection_type = yar::ProjectionType::PERSPECTIVE;
   glm::mat4 m_projection_matrix =
@@ -20,8 +20,9 @@ class Camera : yar::Entity {
 
  public:
   Camera();
-  Camera(glm::vec4 pos, glm::vec4 rot, float fov, float near, float far,
-         float aspect_ratio, yar::ProjectionType projection_type);
+  Camera(glm::vec3 pos, glm::vec3 rot, float fov, float near, float far,
+         float aspect_ratio);
+  glm::mat4 get_projection_matrix() const;
 };
 
 }  // namespace yar
