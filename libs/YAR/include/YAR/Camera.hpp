@@ -11,8 +11,8 @@ enum class ProjectionType { PERSPECTIVE, ORTHOGRAPHIC };
 class Camera : public yar::Entity {
  private:
   float m_fov = glm::radians(70.0f);
-  float m_near = -0.1f;
-  float m_far = -100.0f;
+  float m_near = 0.1f;
+  float m_far = 100.0f;
   float m_aspect_ratio = 1.0f;
   yar::ProjectionType m_projection_type = yar::ProjectionType::PERSPECTIVE;
   glm::mat4 m_projection_matrix =

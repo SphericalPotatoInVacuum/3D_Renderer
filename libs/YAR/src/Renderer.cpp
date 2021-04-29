@@ -46,10 +46,10 @@ float truncate(float x, float min, float max) {
 
 void yar::Renderer::draw(const yar::Triangle& triangle) {
   glm::vec4 box = triangle.get_bounding_box();
-  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width;
-  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width;
-  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height;
-  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height;
+  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width + 1;
+  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width - 1;
+  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height + 1;
+  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height - 1;
 
   assert(minx >= 0 && minx <= m_width);
   assert(maxx >= 0 && maxx <= m_width);
@@ -58,13 +58,17 @@ void yar::Renderer::draw(const yar::Triangle& triangle) {
 
   yar::Color color = triangle.get_color();
 
-  for (int64_t x = 0; x < m_width; ++x) {
-    for (int64_t y = 0; y < m_height; ++y) {
-      float xf = static_cast<float>(x);
-      float yf = static_cast<float>(y);
-      glm::vec2 point(xf / m_width * 2 - 1, yf / m_height * 2 - 1);
-      if (triangle.is_inside(point)) {
-        m_screen.set_pixel(x, m_height - y - 1, color);
+  for (int64_t x = minx; x < maxx; ++x) {
+    float xf = static_cast<float>(x) / m_width * 2 - 1;
+    std::array<float, 2> ys = triangle.get_y(xf);
+    miny = (ys[0] + 1) / 2 * m_width;
+    maxy = (ys[1] + 1) / 2 * m_width;
+    for (int64_t y = miny; y < maxy; ++y) {
+      float yf = static_cast<float>(y) / m_height * 2 - 1;
+      glm::vec3 point(xf, yf, triangle.get_z(xf, yf));
+      if (std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
+          triangle.is_inside(point)) {
+        m_screen.update_pixel(x, m_height - y - 1, point.z, color);
       }
     }
   }

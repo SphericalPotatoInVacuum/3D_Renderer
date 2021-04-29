@@ -25,7 +25,7 @@ class Picture {
   Picture(size_t width, size_t height);
 
   void clear();
-  yar::Color& operator()(size_t row, size_t col);
+  yar::Color& operator()(size_t x, size_t y);
 
   const yar::Color* get_pixels() const;
 };

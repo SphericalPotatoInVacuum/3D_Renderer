@@ -25,7 +25,7 @@ int main() {
        yar::Color{255, 255, 0}}};
   yar::Object object({0, 0, 0}, {0, 0, 0}, triangles);
   float aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-  yar::Camera camera({0, 0, 5}, {0, 0, 0}, glm::radians(70.0f), -1.0f, -100.0f,
+  yar::Camera camera({0, 0, 5}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
                      aspect_ratio);
   world.add_object(&object);
   yar::Renderer renderer(world, camera, WIDTH, HEIGHT);

@@ -1,12 +1,11 @@
 #include <YAR/Triangle.hpp>
 #include <algorithm>
+#include <glm/gtx/normal.hpp>
 #include <stdexcept>
 
 yar::Triangle::Triangle(std::array<glm::vec4, 3> points, Color color)
     : m_points(points), m_color(color) {
-  m_vecs[0] = glm::vec2(m_points[1] - m_points[0]);
-  m_vecs[1] = glm::vec2(m_points[2] - m_points[1]);
-  m_vecs[2] = glm::vec2(m_points[0] - m_points[2]);
+  update();
 }
 
 yar::Triangle::Triangle(std::initializer_list<glm::vec4> list,
@@ -24,10 +23,12 @@ yar::Triangle::Triangle(std::initializer_list<glm::vec4> list,
 }
 
 yar::Triangle::Triangle(std::array<glm::vec4, 3> points)
-    : Triangle(points, yar::Color{rand(), rand(), rand()}) {}
+    : Triangle(points,
+               yar::Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
 
 yar::Triangle::Triangle(std::initializer_list<glm::vec4> list)
-    : Triangle(list, yar::Color{rand(), rand(), rand()}) {}
+    : Triangle(list,
+               yar::Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
 
 yar::Color yar::Triangle::get_color() const {
   return m_color;
@@ -63,9 +64,7 @@ yar::Triangle yar::Triangle::operator*(const glm::mat4 &mat) const {
   for (size_t i = 0; i < 3; ++i) {
     triangle.m_points[i] = mat * m_points[i];
   }
-  triangle.m_vecs[0] = glm::vec2(triangle.m_points[1] - triangle.m_points[0]);
-  triangle.m_vecs[1] = glm::vec2(triangle.m_points[2] - triangle.m_points[1]);
-  triangle.m_vecs[2] = glm::vec2(triangle.m_points[0] - triangle.m_points[2]);
+  triangle.update();
   return triangle;
 }
 
@@ -73,7 +72,65 @@ void yar::Triangle::normalize() {
   for (auto &point : m_points) {
     point /= point.w;
   }
-  m_vecs[0] = glm::vec2(m_points[1] - m_points[0]);
-  m_vecs[1] = glm::vec2(m_points[2] - m_points[1]);
-  m_vecs[2] = glm::vec2(m_points[0] - m_points[2]);
+
+  update();
+}
+
+void yar::Triangle::update() {
+  for (int i = 0; i < 3; ++i) {
+    m_vecs[i] = glm::vec3(m_points[(i + 1) % 3] - m_points[i]);
+    m_lines[i].x = (m_points[(i + 1) % 3].x - m_points[i].x) /
+                   (m_points[(i + 1) % 3].y - m_points[i].y);
+    m_lines[i].y = m_points[i].y - m_lines[i].x * m_points[i].x;
+  }
+}
+
+std::array<float, 2> yar::Triangle::get_x(float y) const {
+  int first, second = -1;
+  for (int i = 0; i < 3; ++i) {
+    float ymin = std::min(m_points[i].y, m_points[(i + 1) % 3].y);
+    float ymax = std::max(m_points[i].y, m_points[(i + 1) % 3].y);
+    if (ymin <= y && y <= ymax) {
+      first = i;
+      break;
+    }
+  }
+  second = first;
+  for (int i = first + 1; i < 3; ++i) {
+    float ymin = std::min(m_points[i].y, m_points[(i + 1) % 3].y);
+    float ymax = std::max(m_points[i].y, m_points[(i + 1) % 3].y);
+    if (ymin <= y && y <= ymax) {
+      second = i;
+      break;
+    }
+  }
+  return {(y - m_lines[first].y) / m_lines[first].x,
+          (y - m_lines[second].y) / m_lines[second].x};
+}
+
+std::array<float, 2> yar::Triangle::get_y(float x) const {
+  int first, second = -1;
+  for (int i = 0; i < 3; ++i) {
+    float xmin = std::min(m_points[i].x, m_points[(i + 1) % 3].x);
+    float xmax = std::max(m_points[i].x, m_points[(i + 1) % 3].x);
+    if (xmin <= x && x <= xmax) {
+      first = i;
+      break;
+    }
+  }
+  second = first;
+  for (int i = first + 1; i < 3; ++i) {
+    float xmin = std::min(m_points[i].x, m_points[(i + 1) % 3].x);
+    float xmax = std::max(m_points[i].x, m_points[(i + 1) % 3].x);
+    if (xmin <= x && x <= xmax) {
+      second = i;
+      break;
+    }
+  }
+  return {x * m_lines[first].x + m_lines[first].y,
+          x * m_lines[second].x + m_lines[second].y};
+}
+
+float yar::Triangle::get_z(float x, float y) const {
+  return 0;
 }

@@ -17,8 +17,8 @@ void yar::Picture::clear() {
   memset(m_data_ptr.get(), 0, m_width * m_height * sizeof(yar::Color));
 }
 
-yar::Color& yar::Picture::operator()(size_t row, size_t col) {
-  return m_data_ptr.get()[row * m_width + col];
+yar::Color& yar::Picture::operator()(size_t x, size_t y) {
+  return m_data_ptr.get()[y * m_width + x];
 }
 
 const yar::Color* yar::Picture::get_pixels() const {
