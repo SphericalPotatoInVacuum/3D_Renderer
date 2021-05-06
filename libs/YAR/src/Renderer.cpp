@@ -57,17 +57,19 @@ void yar::Renderer::draw(const yar::Triangle& triangle) {
   assert(maxy >= 0 && maxy <= m_height);
 
   yar::Color color = triangle.get_color();
+  std::array<glm::vec4, 3> points = triangle.get_points();
 
   for (int64_t x = minx; x < maxx; ++x) {
     float xf = static_cast<float>(x) / m_width * 2 - 1;
-    std::array<float, 2> ys = triangle.get_y(xf);
-    miny = (ys[0] + 1) / 2 * m_width;
-    maxy = (ys[1] + 1) / 2 * m_width;
     for (int64_t y = miny; y < maxy; ++y) {
       float yf = static_cast<float>(y) / m_height * 2 - 1;
-      glm::vec3 point(xf, yf, triangle.get_z(xf, yf));
+      float z = triangle.interpolate(points[0].z, points[1].z, points[2].z,
+                                     glm::vec2(xf, yf));
+      glm::vec3 point(xf, yf, z);
       if (std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
-          triangle.is_inside(point)) {
+          std::abs(z) <= 1 && triangle.is_inside(point)) {
+        float zf = std::pow((z + 1) / 2.0, 15);
+        color = yar::Color{255.0 * zf, 255.0 * zf, 255.0 * zf};
         m_screen.update_pixel(x, m_height - y - 1, point.z, color);
       }
     }

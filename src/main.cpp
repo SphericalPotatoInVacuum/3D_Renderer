@@ -18,14 +18,14 @@ int main() {
   sf::Uint8 pixels[WIDTH * HEIGHT * 4];
   yar::World world;
   std::vector<yar::Triangle> triangles = {
-      {{{-1, 1, -1, 1}, {0, -1, 0, 1}, {1, 1, -1, 1}}, yar::Color{255, 0, 0}},
-      {{{1, 1, -1, 1}, {0, -1, 0, 1}, {1, 1, 1, 1}}, yar::Color{0, 255, 0}},
-      {{{1, 1, 1, 1}, {0, -1, 0, 1}, {-1, 1, 1, 1}}, yar::Color{0, 0, 255}},
-      {{{-1, 1, 1, 1}, {0, -1, 0, 1}, {-1, 1, -1, 1}},
+      {{{1, 1, -1, 1}, {0, -1, 0, 1}, {-1, 1, -1, 1}}, yar::Color{255, 0, 0}},
+      {{{1, 1, 1, 1}, {0, -1, 0, 1}, {1, 1, -1, 1}}, yar::Color{0, 255, 0}},
+      {{{-1, 1, 1, 1}, {0, -1, 0, 1}, {1, 1, 1, 1}}, yar::Color{0, 0, 255}},
+      {{{-1, 1, -1, 1}, {0, -1, 0, 1}, {-1, 1, 1, 1}},
        yar::Color{255, 255, 0}}};
   yar::Object object({0, 0, 0}, {0, 0, 0}, triangles);
   float aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-  yar::Camera camera({0, 0, 5}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
+  yar::Camera camera({0, 0, 3}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 5.0f,
                      aspect_ratio);
   world.add_object(&object);
   yar::Renderer renderer(world, camera, WIDTH, HEIGHT);
@@ -82,7 +82,7 @@ int main() {
 
     object.set_rotation({0, 1 * current_time, 0});
 
-    printf("FPS: %10.10g\r", fps);
+    // printf("FPS: %10.10g\r", fps);
 
     const yar::Color *colors = renderer.render().get_pixels();
     for (int i = 0; i < WIDTH * HEIGHT; ++i) {

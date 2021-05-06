@@ -19,7 +19,7 @@ const yar::Picture& yar::Screen::get_picture() const {
 }
 
 void yar::Screen::update_pixel(size_t x, size_t y, float z, Color c) {
-  if (1 || z < m_zbuf[x * m_width + y]) {
+  if (z < m_zbuf[x * m_width + y]) {
     m_zbuf[x * m_width + y] = z;
     m_picture(x, y) = c;
   }
@@ -27,5 +27,5 @@ void yar::Screen::update_pixel(size_t x, size_t y, float z, Color c) {
 
 void yar::Screen::clear() {
   m_picture.clear();
-  m_zbuf.assign(m_width * m_height, 2);
+  m_zbuf.assign(m_width * m_height, 1);
 }

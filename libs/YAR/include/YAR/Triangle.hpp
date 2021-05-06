@@ -9,6 +9,8 @@
 #include <glm/vec4.hpp>
 #include <initializer_list>
 
+float edge_function(glm::vec2 vec, glm::vec2 point);
+
 namespace yar {
 
 class Triangle {
@@ -30,9 +32,15 @@ class Triangle {
 
   yar::Color get_color() const;
   std::array<glm::vec4, 3> get_points() const;
-  std::array<float, 2> get_x(float y) const;
-  std::array<float, 2> get_y(float x) const;
-  float get_z(float x, float y) const;
+
+  template <typename T>
+  T interpolate(T p0, T p1, T p2, glm::vec2 point) const {
+    float den = edge_function(m_vecs[0], m_vecs[0] + m_vecs[1]);
+    float w0 = edge_function(m_vecs[1], point - glm::vec2(m_points[1])) / den;
+    float w1 = edge_function(m_vecs[2], point - glm::vec2(m_points[2])) / den;
+    float w2 = edge_function(m_vecs[0], point - glm::vec2(m_points[0])) / den;
+    return p0 * w0 + p1 * w1 + p2 * w2;
+  }
 
   void normalize();
 

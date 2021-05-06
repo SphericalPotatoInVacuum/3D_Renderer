@@ -3,6 +3,10 @@
 #include <glm/gtx/normal.hpp>
 #include <stdexcept>
 
+float edge_function(glm::vec2 vec, glm::vec2 point) {
+  return point.x * vec.y - point.y * vec.x;
+}
+
 yar::Triangle::Triangle(std::array<glm::vec4, 3> points, Color color)
     : m_points(points), m_color(color) {
   update();
@@ -52,7 +56,7 @@ std::array<glm::vec4, 3> yar::Triangle::get_points() const {
 bool yar::Triangle::is_inside(glm::vec2 point) const {
   for (size_t i = 0; i < 3; ++i) {
     glm::vec2 p = point - glm::vec2(m_points[i]);
-    if (p.x * m_vecs[i].y - m_vecs[i].x * p.y < 0) {
+    if (edge_function(m_vecs[i], p) > 0) {
       return false;
     }
   }
@@ -83,54 +87,4 @@ void yar::Triangle::update() {
                    (m_points[(i + 1) % 3].y - m_points[i].y);
     m_lines[i].y = m_points[i].y - m_lines[i].x * m_points[i].x;
   }
-}
-
-std::array<float, 2> yar::Triangle::get_x(float y) const {
-  int first, second = -1;
-  for (int i = 0; i < 3; ++i) {
-    float ymin = std::min(m_points[i].y, m_points[(i + 1) % 3].y);
-    float ymax = std::max(m_points[i].y, m_points[(i + 1) % 3].y);
-    if (ymin <= y && y <= ymax) {
-      first = i;
-      break;
-    }
-  }
-  second = first;
-  for (int i = first + 1; i < 3; ++i) {
-    float ymin = std::min(m_points[i].y, m_points[(i + 1) % 3].y);
-    float ymax = std::max(m_points[i].y, m_points[(i + 1) % 3].y);
-    if (ymin <= y && y <= ymax) {
-      second = i;
-      break;
-    }
-  }
-  return {(y - m_lines[first].y) / m_lines[first].x,
-          (y - m_lines[second].y) / m_lines[second].x};
-}
-
-std::array<float, 2> yar::Triangle::get_y(float x) const {
-  int first, second = -1;
-  for (int i = 0; i < 3; ++i) {
-    float xmin = std::min(m_points[i].x, m_points[(i + 1) % 3].x);
-    float xmax = std::max(m_points[i].x, m_points[(i + 1) % 3].x);
-    if (xmin <= x && x <= xmax) {
-      first = i;
-      break;
-    }
-  }
-  second = first;
-  for (int i = first + 1; i < 3; ++i) {
-    float xmin = std::min(m_points[i].x, m_points[(i + 1) % 3].x);
-    float xmax = std::max(m_points[i].x, m_points[(i + 1) % 3].x);
-    if (xmin <= x && x <= xmax) {
-      second = i;
-      break;
-    }
-  }
-  return {x * m_lines[first].x + m_lines[first].y,
-          x * m_lines[second].x + m_lines[second].y};
-}
-
-float yar::Triangle::get_z(float x, float y) const {
-  return 0;
 }
