@@ -35,10 +35,10 @@ class Triangle {
 
   template <typename T>
   T interpolate(T p0, T p1, T p2, glm::vec2 point) const {
-    float den = edge_function(m_vecs[0], m_vecs[0] + m_vecs[1]);
-    float w0 = edge_function(m_vecs[1], point - glm::vec2(m_points[1])) / den;
-    float w1 = edge_function(m_vecs[2], point - glm::vec2(m_points[2])) / den;
-    float w2 = edge_function(m_vecs[0], point - glm::vec2(m_points[0])) / den;
+    float den = edge_function(m_vecs[0], m_vecs[1]);
+    float w0 = edge_function(m_vecs[1], point - glm::vec2(m_points[2])) / den;
+    float w1 = edge_function(m_vecs[2], point - glm::vec2(m_points[0])) / den;
+    float w2 = edge_function(m_vecs[0], point - glm::vec2(m_points[1])) / den;
     return p0 * w0 + p1 * w1 + p2 * w2;
   }
 

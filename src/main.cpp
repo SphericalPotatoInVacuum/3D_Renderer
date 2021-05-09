@@ -23,11 +23,20 @@ int main() {
       {{{-1, 1, 1, 1}, {0, -1, 0, 1}, {1, 1, 1, 1}}, yar::Color{0, 0, 255}},
       {{{-1, 1, -1, 1}, {0, -1, 0, 1}, {-1, 1, 1, 1}},
        yar::Color{255, 255, 0}}};
-  yar::Object object({0, 0, 0}, {0, 0, 0}, triangles);
+  yar::Object object({-2, 0, 2}, {-3.14, 0, 0}, triangles);
+  yar::Object object3({2, 0, -1}, {-3.14, 0, 0}, triangles);
+  yar::Object object2({0, -1, 0}, {0, 0, 0},
+                      std::vector<yar::Triangle>{
+                          {{{-10, 0, 5, 1}, {10, 0, 5, 1}, {-10, 0, -10, 1}},
+                           yar::Color{255, 255, 255}},
+                          {{{10, 0, 5, 1}, {10, 0, -10, 1}, {-10, 0, -10, 1}},
+                           yar::Color{255, 255, 255}}});
   float aspect_ratio = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
-  yar::Camera camera({0, 0, 3}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 5.0f,
-                     aspect_ratio);
+  yar::Camera camera({0, -0.6f, 5.05f}, {0, 0, 0}, glm::radians(70.0f), 0.1f,
+                     15.0f, aspect_ratio);
   world.add_object(&object);
+  world.add_object(&object2);
+  world.add_object(&object3);
   yar::Renderer renderer(world, camera, WIDTH, HEIGHT);
   sf::Clock clock;
   clock.restart();
@@ -80,7 +89,7 @@ int main() {
     // printf("\r%6.2f", fps);
     last_time = current_time;
 
-    object.set_rotation({0, 1 * current_time, 0});
+    // object.set_rotation({0, 1 * current_time, 0});
 
     // printf("FPS: %10.10g\r", fps);
 

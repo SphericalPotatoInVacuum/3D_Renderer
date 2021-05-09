@@ -12,6 +12,15 @@ struct Color {
   uint8_t r;
   uint8_t g;
   uint8_t b;
+
+  template <typename T>
+  Color operator*(const T& p) const {
+    return Color{r * p, g * p, b * p};
+  }
+
+  Color operator+(const Color& p) const {
+    return Color{r + p.r, g + p.g, b + p.b};
+  }
 };
 
 class Picture {

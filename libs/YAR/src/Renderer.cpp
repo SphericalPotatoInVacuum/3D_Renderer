@@ -65,12 +65,15 @@ void yar::Renderer::draw(const yar::Triangle& triangle) {
       float yf = static_cast<float>(y) / m_height * 2 - 1;
       float z = triangle.interpolate(points[0].z, points[1].z, points[2].z,
                                      glm::vec2(xf, yf));
+      yar::Color c =
+          triangle.interpolate(yar::Color{255, 0, 0}, yar::Color{0, 255, 0},
+                               yar::Color{0, 0, 255}, glm::vec2(xf, yf));
       glm::vec3 point(xf, yf, z);
       if (std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
-          std::abs(z) <= 1 && triangle.is_inside(point)) {
-        float zf = std::pow((z + 1) / 2.0, 15);
-        color = yar::Color{255.0 * zf, 255.0 * zf, 255.0 * zf};
-        m_screen.update_pixel(x, m_height - y - 1, point.z, color);
+          triangle.is_inside(point)) {
+        float zf = std::pow((z + 1) / 2.0, 16);
+        color = yar::Color{255, 255, 255} * zf;
+        m_screen.update_pixel(x, m_height - y - 1, point.z, c);
       }
     }
   }
