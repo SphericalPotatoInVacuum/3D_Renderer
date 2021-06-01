@@ -33,4 +33,7 @@ class Application {
 
   std::vector<yar::Triangle> get_pyramid_carcas();
   std::vector<yar::Triangle> get_plane_carcas();
+
+  void poll_events();
+  void handle_key_press();
 };

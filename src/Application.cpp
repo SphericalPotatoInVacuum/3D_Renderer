@@ -10,6 +10,8 @@ Application::Application(size_t width, size_t height)
   sf::Clock clock;
   clock.restart();
 
+  m_window.setKeyRepeatEnabled(false);
+
   m_texture.create(width, height);
   m_font;
   if (!m_font.loadFromFile("arial.ttf")) {
@@ -42,48 +44,7 @@ void Application::run() {
   float last_time = 0;
 
   while (m_window.isOpen()) {
-    sf::Event event;
-    while (m_window.pollEvent(event)) {
-      switch (event.type) {
-        case sf::Event::Closed:
-          m_window.close();
-          break;
-        case sf::Event::KeyPressed:
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            m_camera.move({-0.05, 0, 0});
-            printf("\rfuck");
-            fflush(stdout);
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            m_camera.move({0.05, 0, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            m_camera.move({0, 0.05, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            m_camera.move({0, -0.05, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-            m_camera.move({0, 0, -0.05});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-            m_camera.move({0, 0, 0.05});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            m_camera.rotate({M_PI / 64, 0, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-            m_camera.rotate({-M_PI / 64, 0, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-            m_camera.rotate({0, M_PI / 64, 0});
-          }
-          if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-            m_camera.rotate({0, -M_PI / 64, 0});
-          }
-          break;
-      }
-    }
+    poll_events();
 
     float current_time = clock.getElapsedTime().asSeconds();
 
@@ -178,4 +139,52 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                       }},
                                      yar::Color{255, 255, 0}}};
+}
+
+void Application::poll_events() {
+  sf::Event event;
+  while (m_window.pollEvent(event)) {
+    switch (event.type) {
+      case sf::Event::Closed:
+        m_window.close();
+        break;
+      case sf::Event::KeyPressed:
+        handle_key_press();
+        break;
+    }
+  }
+}
+
+void Application::handle_key_press() {
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+    m_camera.move({-0.05, 0, 0});
+    fflush(stdout);
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+    m_camera.move({0.05, 0, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+    m_camera.move({0, 0.05, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+    m_camera.move({0, -0.05, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
+    m_camera.move({0, 0, -0.05});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
+    m_camera.move({0, 0, 0.05});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+    m_camera.rotate({M_PI / 64, 0, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
+    m_camera.rotate({-M_PI / 64, 0, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
+    m_camera.rotate({0, M_PI / 64, 0});
+  }
+  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
+    m_camera.rotate({0, -M_PI / 64, 0});
+  }
 }
