@@ -29,10 +29,10 @@ Application::Application(size_t width, size_t height)
   }
   float aspect_ratio =
       static_cast<float>(width + 0.0) / static_cast<float>(height);
-  m_camera = yar::Camera({0, 0.6f, 10.05f}, {0, 0, 0}, glm::radians(70.0f),
-                         0.1f, 100.0f, aspect_ratio);
+  m_camera = yar::Camera({0, 0.6f, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f,
+                         100.0f, aspect_ratio);
   for (auto &object : objects) {
-    m_world.add_object(&object);
+    m_world.add_object(object);
   }
 
   m_init_time = clock.getElapsedTime().asSeconds();
@@ -58,14 +58,7 @@ void Application::run() {
     last_time = current_time;
 
     m_renderer.render(m_world, m_camera, m_screen);
-    const yar::Color *colors = m_screen.get_picture().get_pixels();
-    for (int i = 0; i < m_width * m_height; ++i) {
-      m_pixels[4 * i] = colors[i].r;
-      m_pixels[4 * i + 1] = colors[i].g;
-      m_pixels[4 * i + 2] = colors[i].b;
-      m_pixels[4 * i + 3] = 255;
-    }
-    m_texture.update(m_pixels.data());
+    update_screen(m_screen.get_picture().get_pixels());
     m_sprite.setTexture(m_texture);
 
     m_window.draw(m_sprite);
@@ -90,7 +83,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           -1,
                                       }},
-                                     yar::Color{255, 0, 0}},
+                                     {255, 0, 0}},
                                     {{{
                                           1,
                                           1,
@@ -106,7 +99,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           -1,
                                       }},
-                                     yar::Color{0, 255, 0}},
+                                     {0, 255, 0}},
                                     {{{
                                           -1,
                                           1,
@@ -122,7 +115,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           1,
                                       }},
-                                     yar::Color{0, 0, 255}},
+                                     {0, 0, 255}},
                                     {{{
                                           -1,
                                           1,
@@ -138,7 +131,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           1,
                                       }},
-                                     yar::Color{255, 255, 0}}};
+                                     {255, 255, 0}}};
 }
 
 void Application::poll_events() {
@@ -157,23 +150,22 @@ void Application::poll_events() {
 
 void Application::handle_key_press() {
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-    m_camera.move({-0.05, 0, 0});
-    fflush(stdout);
+    m_camera.move({-0.2, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-    m_camera.move({0.05, 0, 0});
+    m_camera.move({0.2, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-    m_camera.move({0, 0.05, 0});
+    m_camera.move({0, 0.2, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-    m_camera.move({0, -0.05, 0});
+    m_camera.move({0, -0.2, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Q)) {
-    m_camera.move({0, 0, -0.05});
+    m_camera.move({0, 0, -0.2});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::E)) {
-    m_camera.move({0, 0, 0.05});
+    m_camera.move({0, 0, 0.2});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
     m_camera.rotate({M_PI / 64, 0, 0});
@@ -187,4 +179,14 @@ void Application::handle_key_press() {
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
     m_camera.rotate({0, -M_PI / 64, 0});
   }
+}
+
+void Application::update_screen(const yar::Color *colors) {
+  for (int i = 0; i < m_width * m_height; ++i) {
+    m_pixels[4 * i] = colors[i].r;
+    m_pixels[4 * i + 1] = colors[i].g;
+    m_pixels[4 * i + 2] = colors[i].b;
+    m_pixels[4 * i + 3] = 255;
+  }
+  m_texture.update(m_pixels.data());
 }

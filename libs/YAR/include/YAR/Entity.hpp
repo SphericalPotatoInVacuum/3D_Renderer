@@ -7,14 +7,6 @@
 namespace yar {
 
 class Entity {
- private:
-  glm::vec3 m_position = {0, 0, 0};
-  glm::vec3 m_rotation = {0, 0, 0};
-  glm::mat4 m_transform_matrix = glm::mat4(1.0f);
-  std::string m_name = "bare entity";
-
-  void update_matrices();
-
  public:
   Entity(){};
   Entity(glm::vec3 position, glm::vec3 rotation);
@@ -26,6 +18,14 @@ class Entity {
   void rotate(glm::vec3 rot);
 
   glm::mat4 get_transform_matrix() const;
+
+ private:
+  glm::vec3 m_position = {0, 0, 0};
+  glm::vec3 m_rotation = {0, 0, 0};
+  glm::mat4 m_transform_matrix = glm::mat4(1.0f);
+  std::string m_name = "bare entity";
+
+  void update_matrices();
 };
 
 }  // namespace yar

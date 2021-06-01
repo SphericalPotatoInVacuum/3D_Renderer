@@ -7,13 +7,13 @@
 
 namespace yar {
 class Renderer {
- public:
-  void render(const yar::World& world, const yar::Camera& camera,
-              yar::Screen& screen);
-
  private:
   void draw(const Triangle& triangle, yar::Screen& screen);
   std::vector<yar::Triangle> clip(const std::vector<yar::Triangle>& triangles,
                                   const yar::Camera& camera);
+
+ public:
+  void render(const yar::World& world, const yar::Camera& camera,
+              yar::Screen& screen);
 };
 }  // namespace yar

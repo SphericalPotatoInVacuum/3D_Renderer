@@ -7,11 +7,12 @@
 namespace yar {
 class World {
  private:
-  std::vector<Object *> m_objects;
+  std::vector<Object> m_objects;
 
  public:
-  void add_object(Object *object);
+  void add_object(Object object);
 
-  const std::vector<Object *> get_objects() const;
+  const std::vector<Object> &get_objects() const;
 };
+
 }  // namespace yar

@@ -36,4 +36,5 @@ class Application {
 
   void poll_events();
   void handle_key_press();
+  void update_screen(const yar::Color *colors);
 };
