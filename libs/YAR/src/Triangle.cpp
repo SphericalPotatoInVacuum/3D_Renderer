@@ -7,30 +7,29 @@ float edge_function(glm::vec2 vec, glm::vec2 point) {
   return point.x * vec.y - point.y * vec.x;
 }
 
-yar::Triangle::Triangle(std::array<glm::vec3, 3> points, Color color)
+yar::Triangle::Triangle(const glm::mat3x3 &vertices, Color color)
     : m_color(color) {
+  m_vertices = glm::mat3x4(vertices);
   for (int i = 0; i < 3; ++i) {
-    m_points[i] = glm::vec4(points[i], 1);
+    m_vertices[i].w = 1;
   }
   update();
 }
 
 yar::Triangle::Triangle(std::initializer_list<glm::vec3> list,
                         yar::Color color) {
-  if (list.size() != 3) {
-    throw std::invalid_argument("List must have 3 elements");
+  assert(("List must have 3 elements", list.size() == 3));
+  glm::mat3x3 mat;
+  int i = 0;
+  for (const auto &vec : list) {
+    mat[i] = vec;
+    ++i;
   }
-  std::array<glm::vec3, 3> points;
-  auto it = points.begin();
-  for (const glm::vec3 &point : list) {
-    *it = point;
-    ++it;
-  }
-  *this = yar::Triangle(points, color);
+  *this = yar::Triangle(mat, color);
 }
 
-yar::Triangle::Triangle(std::array<glm::vec3, 3> points)
-    : Triangle(points,
+yar::Triangle::Triangle(const glm::mat3x3 &vertices)
+    : Triangle(vertices,
                yar::Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
 
 yar::Triangle::Triangle(std::initializer_list<glm::vec3> list)
@@ -44,21 +43,21 @@ yar::Color yar::Triangle::get_color() const {
 glm::vec4 yar::Triangle::get_bounding_box() const {
   glm::vec4 box = {1, -1, 1, -1};
   for (size_t i = 0; i < 3; ++i) {
-    box[0] = std::min(box[0], m_points[i].x);
-    box[1] = std::max(box[1], m_points[i].x);
-    box[2] = std::min(box[2], m_points[i].y);
-    box[3] = std::max(box[3], m_points[i].y);
+    box[0] = std::min(box[0], m_vertices[i].x);
+    box[1] = std::max(box[1], m_vertices[i].x);
+    box[2] = std::min(box[2], m_vertices[i].y);
+    box[3] = std::max(box[3], m_vertices[i].y);
   }
   return box;
 }
 
-std::array<glm::vec4, 3> yar::Triangle::get_points() const {
-  return m_points;
+glm::mat3x4 yar::Triangle::get_vertices() const {
+  return m_vertices;
 }
 
 bool yar::Triangle::is_inside(glm::vec2 point) const {
   for (size_t i = 0; i < 3; ++i) {
-    glm::vec2 p = point - glm::vec2(m_points[i]);
+    glm::vec2 p = point - glm::vec2(m_vertices[i]);
     if (edge_function(m_vecs[i], p) > 0) {
       return false;
     }
@@ -67,8 +66,8 @@ bool yar::Triangle::is_inside(glm::vec2 point) const {
 }
 
 void yar::Triangle::cycle() {
-  std::swap(m_points[0], m_points[2]);
-  std::swap(m_points[1], m_points[2]);
+  std::swap(m_vertices[0], m_vertices[2]);
+  std::swap(m_vertices[1], m_vertices[2]);
   std::swap(m_vecs[0], m_vecs[2]);
   std::swap(m_vecs[1], m_vecs[2]);
 }
@@ -76,7 +75,7 @@ void yar::Triangle::cycle() {
 yar::Triangle yar::Triangle::operator*(const glm::mat4 &mat) const {
   yar::Triangle tri(*this);
   for (size_t i = 0; i < 3; ++i) {
-    tri.m_points[i] = mat * m_points[i];
+    tri.m_vertices[i] = mat * m_vertices[i];
   }
   tri.update();
   return tri;
@@ -86,9 +85,9 @@ yar::Triangle yar::operator*(const glm::mat4 &mat, const yar::Triangle tri) {
   return tri * mat;
 }
 
-void yar::Triangle::normalize() {
-  for (auto &point : m_points) {
-    point /= point.w;
+void yar::Triangle::project_to_3d() {
+  for (int i = 0; i < 3; ++i) {
+    m_vertices[i] /= m_vertices[i].w;
   }
 
   update();
@@ -96,6 +95,6 @@ void yar::Triangle::normalize() {
 
 void yar::Triangle::update() {
   for (int i = 0; i < 3; ++i) {
-    m_vecs[i] = glm::vec3(m_points[(i + 1) % 3] - m_points[i]);
+    m_vecs[i] = glm::vec3(m_vertices[(i + 1) % 3] - m_vertices[i]);
   }
 }

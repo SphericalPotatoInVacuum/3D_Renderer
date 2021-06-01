@@ -23,7 +23,7 @@ void yar::Renderer::render(const yar::World& world, const yar::Camera& camera,
     triangles = clip(triangles, camera);
     for (yar::Triangle triangle : triangles) {
       triangle = projection * triangle;
-      triangle.normalize();
+      triangle.project_to_3d();
       draw(triangle, screen);
     }
   }
@@ -54,7 +54,7 @@ void yar::Renderer::draw(const yar::Triangle& triangle, yar::Screen& screen) {
   assert(maxy >= 0 && maxy <= m_height);
 
   yar::Color color = triangle.get_color();
-  std::array<glm::vec4, 3> vertices = triangle.get_vertices();
+  glm::mat3x4 vertices = triangle.get_vertices();
 
   for (int64_t x = minx; x < maxx; ++x) {
     float xf = static_cast<float>(x) / m_width * 2 - 1;
