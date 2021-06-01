@@ -17,21 +17,20 @@ class Triangle {
  private:
   std::array<glm::vec4, 3> m_points;
   std::array<glm::vec3, 3> m_vecs;
-  std::array<glm::vec2, 3> m_lines;  // Ax + B = y -- A and B for all m_vecs
   yar::Color m_color;
 
   void update();
 
  public:
-  Triangle(std::array<glm::vec4, 3> points);
-  Triangle(std::initializer_list<glm::vec4> list);
-  Triangle(std::array<glm::vec4, 3> points, Color color);
-  Triangle(std::initializer_list<glm::vec4> list, Color color);
-
-  yar::Triangle operator*(const glm::mat4 &mat) const;
+  Triangle(std::array<glm::vec3, 3> points);
+  Triangle(std::initializer_list<glm::vec3> list);
+  Triangle(std::array<glm::vec3, 3> points, Color color);
+  Triangle(std::initializer_list<glm::vec3> list, Color color);
 
   yar::Color get_color() const;
   std::array<glm::vec4, 3> get_points() const;
+
+  void cycle();
 
   template <typename T>
   T interpolate(T p0, T p1, T p2, glm::vec2 point) const {
@@ -42,10 +41,13 @@ class Triangle {
     return p0 * w0 + p1 * w1 + p2 * w2;
   }
 
+  Triangle operator*(const glm::mat4& mat) const;
+
   void normalize();
 
   glm::vec4 get_bounding_box() const;
   bool is_inside(glm::vec2 point) const;
 };
 
+Triangle operator*(const glm::mat4& mat, const Triangle tri);
 }  // namespace yar

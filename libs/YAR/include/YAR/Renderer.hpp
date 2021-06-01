@@ -8,19 +8,12 @@
 namespace yar {
 class Renderer {
  public:
-  Renderer();
-  Renderer(yar::World& world, yar::Camera& camera, size_t width, size_t height);
-
-  const Picture& render();
+  void render(const yar::World& world, const yar::Camera& camera,
+              yar::Screen& screen);
 
  private:
-  void draw(const Triangle& triangle);
-
-  yar::World& m_world;
-  yar::Camera& m_camera;
-  yar::Screen m_screen;
-
-  size_t m_width;
-  size_t m_height;
+  void draw(const Triangle& triangle, yar::Screen& screen);
+  std::vector<yar::Triangle> clip(const std::vector<yar::Triangle>& triangles,
+                                  const yar::Camera& camera);
 };
 }  // namespace yar

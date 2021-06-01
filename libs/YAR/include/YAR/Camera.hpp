@@ -23,6 +23,8 @@ class Camera : public yar::Entity {
   Camera(glm::vec3 pos, glm::vec3 rot, float fov, float near, float far,
          float aspect_ratio);
   glm::mat4 get_projection_matrix() const;
+  float get_near() const;
+  float get_far() const;
 };
 
 }  // namespace yar

@@ -13,6 +13,7 @@ class Screen {
   size_t m_height = 0;
 
  public:
+  Screen() {}
   Screen(size_t width, size_t height);
 
   size_t get_width() const;

@@ -8,30 +8,26 @@ float frand() {
   return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
 
-yar::Renderer::Renderer(yar::World& world, yar::Camera& camera, size_t width,
-                        size_t height)
-    : m_world(world),
-      m_camera(camera),
-      m_screen(width, height),
-      m_width(width),
-      m_height(height) {}
-
-const yar::Picture& yar::Renderer::render() {
-  m_screen.clear();
-  glm::mat4 view = glm::inverse(m_camera.get_transform_matrix());
-  glm::mat4 projection = m_camera.get_projection_matrix();
-  glm::mat4 mvp;
-  for (yar::Object* object_ptr : m_world.get_objects()) {
+void yar::Renderer::render(const yar::World& world, const yar::Camera& camera,
+                           yar::Screen& screen) {
+  screen.clear();
+  glm::mat4 view = glm::inverse(camera.get_transform_matrix());
+  glm::mat4 projection = camera.get_projection_matrix();
+  glm::mat4 mvp;  // model view projection matrix
+  for (yar::Object* object_ptr : world.get_objects()) {
     glm::mat4 model = object_ptr->get_transform_matrix();
     mvp = projection * view * model;
+    std::vector<yar::Triangle> triangles;
     for (yar::Triangle triangle : object_ptr->get_triangles()) {
-      triangle = triangle * mvp;
+      triangles.push_back(view * model * triangle);
+    }
+    triangles = clip(triangles, camera);
+    for (yar::Triangle triangle : triangles) {
+      triangle = projection * triangle;
       triangle.normalize();
-      draw(triangle);
+      draw(triangle, screen);
     }
   }
-
-  return m_screen.get_picture();
 }
 
 float truncate(float x, float min, float max) {
@@ -44,12 +40,14 @@ float truncate(float x, float min, float max) {
   return x;
 }
 
-void yar::Renderer::draw(const yar::Triangle& triangle) {
+void yar::Renderer::draw(const yar::Triangle& triangle, yar::Screen& screen) {
+  size_t m_width = screen.get_width();
+  size_t m_height = screen.get_height();
   glm::vec4 box = triangle.get_bounding_box();
-  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width + 1;
-  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width - 1;
-  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height + 1;
-  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height - 1;
+  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width;
+  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width;
+  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height;
+  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height;
 
   assert(minx >= 0 && minx <= m_width);
   assert(maxx >= 0 && maxx <= m_width);
@@ -72,9 +70,72 @@ void yar::Renderer::draw(const yar::Triangle& triangle) {
       if (std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
           triangle.is_inside(point)) {
         float zf = std::pow((z + 1) / 2.0, 16);
-        color = yar::Color{255, 255, 255} * zf;
-        m_screen.update_pixel(x, m_height - y - 1, point.z, c);
+        color = yar::Color{255, 255, 255} * (1 - zf);
+        screen.update_pixel(x, m_height - y - 1, point.z, color);
       }
     }
   }
+}
+
+std::vector<yar::Triangle> yar::Renderer::clip(
+    const std::vector<yar::Triangle>& triangles, const yar::Camera& camera) {
+  std::vector<yar::Triangle> ret;
+  for (auto triangle : triangles) {
+    std::vector<int> inside, outside;
+    auto points = triangle.get_points();
+    for (int i = 0; i < 3; ++i) {
+      if (-points[i].z >= camera.get_near()) {
+        inside.push_back(i);
+      } else {
+        outside.push_back(i);
+      }
+    }
+    float a, b;
+    switch (inside.size()) {
+      case 0:
+        // triangle is fully outside
+        break;
+      case 1:
+        // 1 vertex is inside, clamp vertices to points of intersection
+        if (inside[0] == 1) {
+          triangle.cycle();
+          triangle.cycle();
+        } else if (inside[0] == 2) {
+          triangle.cycle();
+        }
+        // now the zeroth vertex is inside
+        points = triangle.get_points();
+        a = (-camera.get_near() - points[0].z) / (points[1].z - points[0].z);
+        b = (-camera.get_near() - points[0].z) / (points[2].z - points[0].z);
+        ret.push_back(
+            yar::Triangle({points[0], points[0] + a * (points[1] - points[0]),
+                           points[0] + b * (points[2] - points[0])}));
+        break;
+      case 2:
+        // 2 vertices are inside, construct 2 new triangles
+        if (outside[0] == 1) {
+          triangle.cycle();
+          triangle.cycle();
+        } else if (outside[0] == 2) {
+          triangle.cycle();
+        }
+        // now the zeroth vertex is inside
+        points = triangle.get_points();
+        a = (-camera.get_near() - points[0].z) / (points[1].z - points[0].z);
+        b = (-camera.get_near() - points[0].z) / (points[2].z - points[0].z);
+
+        ret.push_back(
+            yar::Triangle({points[0] + a * (points[1] - points[0]), points[1],
+                           points[0] + b * (points[2] - points[0])}));
+        ret.push_back(yar::Triangle(
+            {points[0] + b * (points[2] - points[0]), points[1], points[2]}));
+        break;
+      case 3:
+        ret.push_back(triangle);
+        break;
+      default:
+        break;
+    }
+  }
+  return ret;
 }
