@@ -47,6 +47,7 @@ class Triangle {
   yar::Color m_color;
 
   void update();
+  glm::mat3x4 get_mat(std::initializer_list<glm::vec3> list);
 };
 
 Triangle operator*(const glm::mat4& mat, const Triangle tri);

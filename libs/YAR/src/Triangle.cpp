@@ -16,17 +16,8 @@ yar::Triangle::Triangle(const glm::mat3x3 &vertices, Color color)
   update();
 }
 
-yar::Triangle::Triangle(std::initializer_list<glm::vec3> list,
-                        yar::Color color) {
-  assert(("List must have 3 elements", list.size() == 3));
-  glm::mat3x3 mat;
-  int i = 0;
-  for (const auto &vec : list) {
-    mat[i] = vec;
-    ++i;
-  }
-  *this = yar::Triangle(mat, color);
-}
+yar::Triangle::Triangle(std::initializer_list<glm::vec3> list, yar::Color color)
+    : Triangle(get_mat(list), color) {}
 
 yar::Triangle::Triangle(const glm::mat3x3 &vertices)
     : Triangle(vertices,
@@ -97,4 +88,15 @@ void yar::Triangle::update() {
   for (int i = 0; i < 3; ++i) {
     m_vecs[i] = glm::vec3(m_vertices[(i + 1) % 3] - m_vertices[i]);
   }
+}
+
+glm::mat3x4 yar::Triangle::get_mat(std::initializer_list<glm::vec3> list) {
+  assert(("List must have 3 elements", list.size() == 3));
+  glm::mat3x3 mat;
+  int i = 0;
+  for (const auto &vec : list) {
+    mat[i] = vec;
+    ++i;
+  }
+  return mat;
 }
