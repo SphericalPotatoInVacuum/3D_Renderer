@@ -1,4 +1,5 @@
 #include <Application.hpp>
+#include <YAR/Color.hpp>
 #include <YAR/Renderer.hpp>
 
 Application::Application(size_t width, size_t height)
@@ -6,13 +7,16 @@ Application::Application(size_t width, size_t height)
       m_height(height),
       m_window(sf::VideoMode(width, height), "3D Renderer"),
       m_screen(width, height),
-      m_pixels(4 * width * height) {
+      m_pixels(4 * width * height),
+      m_camera({0, 0.6f, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
+               (width + 0.f) / height) {
   sf::Clock clock;
   clock.restart();
 
   m_window.setKeyRepeatEnabled(false);
 
   m_texture.create(width, height);
+
   m_font;
   if (!m_font.loadFromFile("arial.ttf")) {
     _Exit(1);
@@ -27,10 +31,16 @@ Application::Application(size_t width, size_t height)
       m_triangle_cnt += triangles.size();
     }
   }
-  float aspect_ratio =
-      static_cast<float>(width + 0.0) / static_cast<float>(height);
-  m_camera = yar::Camera({0, 0.6f, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f,
-                         100.0f, aspect_ratio);
+
+  triangles = get_plane_carcas();
+  for (int x = -3; x <= 3; ++x) {
+    for (int y = 0; y <= 6; ++y) {
+      objects.push_back(
+          yar::Object({2 * x, 2 * y, -17}, {-M_PI_2, 0, 0}, triangles));
+      m_triangle_cnt += triangles.size();
+    }
+  }
+
   for (auto &object : objects) {
     m_world.add_object(object);
   }
@@ -51,14 +61,15 @@ void Application::run() {
     ss.str("");
     ss.precision(6);
     ss << "Init time: " << std::fixed << m_init_time << "s\n"
-       << "time per frame: " << std::fixed << (current_time - last_time)
+       << "Time per frame: " << std::fixed << (current_time - last_time)
        << "s\n"
+       << "FPS: " << std::fixed << 1 / (current_time - last_time) << "\n"
        << "Triangle count: " << m_triangle_cnt;
     m_text.setString(ss.str());
     last_time = current_time;
 
-    m_renderer.render(m_world, m_camera, m_screen);
-    update_screen(m_screen.get_picture().get_pixels());
+    m_renderer.render(m_world, m_camera, &m_screen);
+    update_screen(m_screen.get_picture());
     m_sprite.setTexture(m_texture);
 
     m_window.draw(m_sprite);
@@ -83,7 +94,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           -1,
                                       }},
-                                     {255, 0, 0}},
+                                     yar::Color::Red},
                                     {{{
                                           1,
                                           1,
@@ -99,7 +110,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           -1,
                                       }},
-                                     {0, 255, 0}},
+                                     yar::Color::Green},
                                     {{{
                                           -1,
                                           1,
@@ -115,7 +126,7 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           1,
                                       }},
-                                     {0, 0, 255}},
+                                     yar::Color::Blue},
                                     {{{
                                           -1,
                                           1,
@@ -131,7 +142,13 @@ std::vector<yar::Triangle> Application::get_pyramid_carcas() {
                                           1,
                                           1,
                                       }},
-                                     {255, 255, 0}}};
+                                     yar::Color::Yellow}};
+}
+
+std::vector<yar::Triangle> Application::get_plane_carcas() {
+  return std::vector<yar::Triangle>{
+      {{{-1, 0, -1}, {1, 0, 1}, {-1, 0, 1}}, yar::Color::White},
+      {{{-1, 0, -1}, {1, 0, -1}, {1, 0, 1}}, yar::Color::White}};
 }
 
 void Application::poll_events() {
@@ -168,25 +185,27 @@ void Application::handle_key_press() {
     m_camera.move({0, 0, 0.2});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-    m_camera.rotate({M_PI / 64, 0, 0});
+    m_camera.rotate({M_PI / 32, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-    m_camera.rotate({-M_PI / 64, 0, 0});
+    m_camera.rotate({-M_PI / 32, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-    m_camera.rotate({0, M_PI / 64, 0});
+    m_camera.rotate({0, M_PI / 32, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-    m_camera.rotate({0, -M_PI / 64, 0});
+    m_camera.rotate({0, -M_PI / 32, 0});
   }
 }
 
-void Application::update_screen(const yar::Color *colors) {
-  for (int i = 0; i < m_width * m_height; ++i) {
-    m_pixels[4 * i] = colors[i].r;
-    m_pixels[4 * i + 1] = colors[i].g;
-    m_pixels[4 * i + 2] = colors[i].b;
-    m_pixels[4 * i + 3] = 255;
+void Application::update_screen(const yar::Picture &picture) {
+  for (int x = 0; x < m_width; ++x) {
+    for (int y = 0; y < m_height; ++y) {
+      m_pixels[4 * (y * m_width + x)] = picture(x, y).r;
+      m_pixels[4 * (y * m_width + x) + 1] = picture(x, y).g;
+      m_pixels[4 * (y * m_width + x) + 2] = picture(x, y).b;
+      m_pixels[4 * (y * m_width + x) + 3] = 255;
+    }
   }
   m_texture.update(m_pixels.data());
 }

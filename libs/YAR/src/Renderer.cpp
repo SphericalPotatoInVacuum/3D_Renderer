@@ -1,84 +1,75 @@
 #include <stdlib.h>
 
 #include <YAR/Renderer.hpp>
+#include <YAR/Utils.hpp>
 #include <algorithm>
 #include <cmath>
 
-float frand() {
-  return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-}
+namespace yar {
 
-void yar::Renderer::render(const yar::World& world, const yar::Camera& camera,
-                           yar::Screen& screen) {
-  screen.clear();
-  glm::mat4 view = glm::inverse(camera.get_transform_matrix());
-  glm::mat4 projection = camera.get_projection_matrix();
-
-  for (const yar::Object& object : world.get_objects()) {
-    glm::mat4 model = object.get_transform_matrix();
-    std::vector<yar::Triangle> triangles;
-    for (yar::Triangle triangle : object.get_triangles()) {
-      triangles.push_back(view * model * triangle);
-    }
-    triangles = clip(triangles, camera);
-    for (yar::Triangle triangle : triangles) {
-      triangle = projection * triangle;
-      triangle.project_to_3d();
-      draw(triangle, screen);
-    }
+void Renderer::render(const World& world, const Camera& camera,
+                      Screen* screen) {
+  screen->clear();
+  glm::mat4 view_mat = glm::inverse(camera.get_transform_matrix());
+  glm::mat4 projection_mat = camera.get_projection_matrix();
+  for (const Object& object : world.get_objects()) {
+    draw_object(object, camera, view_mat, projection_mat, screen);
   }
 }
 
-float truncate(float x, float min, float max) {
-  if (x < min) {
-    x = min;
+void Renderer::draw_object(const Object& object, const Camera& camera,
+                           const glm::mat4& view_mat,
+                           const glm::mat4& projection_mat, Screen* screen) {
+  glm::mat4 model_mat = object.get_transform_matrix();
+  std::vector<Triangle> triangles;
+  for (Triangle triangle : object.get_triangles()) {
+    triangles.push_back(view_mat * model_mat * triangle);
   }
-  if (x > max) {
-    x = max;
+  triangles = clip(triangles, camera);
+  for (Triangle triangle : triangles) {
+    triangle = projection_mat * triangle;
+    triangle.project_to_3d();
+    draw_triangle(triangle, screen);
   }
-  return x;
 }
 
-void yar::Renderer::draw(const yar::Triangle& triangle, yar::Screen& screen) {
-  size_t m_width = screen.get_width();
-  size_t m_height = screen.get_height();
+void Renderer::draw_triangle(const Triangle& triangle, Screen* screen) {
+  size_t m_width = screen->get_width();
+  size_t m_height = screen->get_height();
   glm::vec4 box = triangle.get_bounding_box();
-  int64_t minx = (truncate(box[0], -1, 1) + 1) / 2 * m_width;
-  int64_t maxx = (truncate(box[1], -1, 1) + 1) / 2 * m_width;
-  int64_t miny = (truncate(box[2], -1, 1) + 1) / 2 * m_height;
-  int64_t maxy = (truncate(box[3], -1, 1) + 1) / 2 * m_height;
+  int64_t minx = uv_to_screen(truncate(box[0], -1.f, 1.f), m_width);
+  int64_t maxx = uv_to_screen(truncate(box[1], -1.f, 1.f), m_width);
+  int64_t miny = uv_to_screen(truncate(box[2], -1.f, 1.f), m_height);
+  int64_t maxy = uv_to_screen(truncate(box[3], -1.f, 1.f), m_height);
 
   assert(minx >= 0 && minx <= m_width);
   assert(maxx >= 0 && maxx <= m_width);
   assert(miny >= 0 && miny <= m_height);
   assert(maxy >= 0 && maxy <= m_height);
 
-  yar::Color color = triangle.get_color();
+  Color color = triangle.get_color();
   glm::mat3x4 vertices = triangle.get_vertices();
 
+  // iterate over all points inside the bounding box and draw them if they are
+  // inside the triangle
   for (int64_t x = minx; x < maxx; ++x) {
-    float xf = static_cast<float>(x) / m_width * 2 - 1;
+    float xf = screen_to_uv(x, m_width);
     for (int64_t y = miny; y < maxy; ++y) {
-      float yf = static_cast<float>(y) / m_height * 2 - 1;
+      float yf = screen_to_uv(y, m_height);
       float z = triangle.interpolate(vertices[0].z, vertices[1].z,
                                      vertices[2].z, glm::vec2(xf, yf));
-      yar::Color c =
-          triangle.interpolate(yar::Color{255, 0, 0}, yar::Color{0, 255, 0},
-                               yar::Color{0, 0, 255}, glm::vec2(xf, yf));
       glm::vec3 point(xf, yf, z);
-      if (std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
-          triangle.is_inside(point)) {
-        float zf = std::pow((z + 1) / 2.0, 16);
-        color = yar::Color{255, 255, 255} * (1 - zf);
-        screen.update_pixel(x, m_height - y - 1, point.z, color);
+      if (is_point_inside_frustum(point) && triangle.is_inside(point)) {
+        screen->update_pixel(x, m_height - y - 1, point.z,
+                             triangle.get_color());
       }
     }
   }
 }
 
-std::vector<yar::Triangle> yar::Renderer::clip(
-    const std::vector<yar::Triangle>& triangles, const yar::Camera& camera) {
-  std::vector<yar::Triangle> ret;
+std::vector<Triangle> Renderer::clip(const std::vector<Triangle>& triangles,
+                                     const Camera& camera) {
+  std::vector<Triangle> ret;
   for (auto triangle : triangles) {
     std::vector<int> inside, outside;
     auto vertices = triangle.get_vertices();
@@ -108,7 +99,7 @@ std::vector<yar::Triangle> yar::Renderer::clip(
             (vertices[1].z - vertices[0].z);
         b = (-camera.get_near() - vertices[0].z) /
             (vertices[2].z - vertices[0].z);
-        ret.push_back(yar::Triangle(
+        ret.push_back(Triangle(
             {vertices[0], vertices[0] + a * (vertices[1] - vertices[0]),
              vertices[0] + b * (vertices[2] - vertices[0])}));
         break;
@@ -127,12 +118,11 @@ std::vector<yar::Triangle> yar::Renderer::clip(
         b = (-camera.get_near() - vertices[0].z) /
             (vertices[2].z - vertices[0].z);
 
-        ret.push_back(yar::Triangle(
+        ret.push_back(Triangle(
             {vertices[0] + a * (vertices[1] - vertices[0]), vertices[1],
              vertices[0] + b * (vertices[2] - vertices[0])}));
-        ret.push_back(
-            yar::Triangle({vertices[0] + b * (vertices[2] - vertices[0]),
-                           vertices[1], vertices[2]}));
+        ret.push_back(Triangle({vertices[0] + b * (vertices[2] - vertices[0]),
+                                vertices[1], vertices[2]}));
         break;
       case 3:
         ret.push_back(triangle);
@@ -143,3 +133,10 @@ std::vector<yar::Triangle> yar::Renderer::clip(
   }
   return ret;
 }
+
+bool Renderer::is_point_inside_frustum(const glm::vec3& point) const {
+  return std::abs(point.x) <= 1 && std::abs(point.y) <= 1 &&
+         std::abs(point.z) <= 1;
+}
+
+}  // namespace yar

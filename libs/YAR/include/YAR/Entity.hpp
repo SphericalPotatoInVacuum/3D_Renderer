@@ -8,11 +8,11 @@ namespace yar {
 
 class Entity {
  public:
-  Entity(){};
+  Entity() = default;
   Entity(glm::vec3 position, glm::vec3 rotation);
 
-  void set_position(glm::vec3 pos);
-  void set_rotation(glm::vec3 rot);
+  void set_position(const glm::vec3 &pos);
+  void set_rotation(const glm::vec3 &rot);
 
   void move(glm::vec3 shift);
   void rotate(glm::vec3 rot);
@@ -23,9 +23,8 @@ class Entity {
   glm::vec3 m_position = {0, 0, 0};
   glm::vec3 m_rotation = {0, 0, 0};
   glm::mat4 m_transform_matrix = glm::mat4(1.0f);
-  std::string m_name = "bare entity";
 
-  void update_matrices();
+  glm::mat4 make_transform_matrix() const;
 };
 
 }  // namespace yar

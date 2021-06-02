@@ -7,7 +7,6 @@
 namespace yar {
 class Screen {
  public:
-  Screen() {}
   Screen(size_t width, size_t height);
 
   size_t get_width() const;
@@ -21,7 +20,6 @@ class Screen {
  private:
   yar::Picture m_picture;
   std::vector<float> m_zbuf;
-  size_t m_width = 0;
-  size_t m_height = 0;
+  static constexpr const float k_maximal_z_value = 1.f;
 };
 }  // namespace yar

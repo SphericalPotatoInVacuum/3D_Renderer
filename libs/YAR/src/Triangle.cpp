@@ -3,35 +3,66 @@
 #include <glm/gtx/normal.hpp>
 #include <stdexcept>
 
-float edge_function(glm::vec2 vec, glm::vec2 point) {
+namespace yar {
+
+float get_signed_cp_length(glm::vec2 vec, glm::vec2 point) {
   return point.x * vec.y - point.y * vec.x;
 }
 
-yar::Triangle::Triangle(const glm::mat3x3 &vertices, Color color)
-    : m_color(color) {
+Triangle::Triangle(const glm::mat3x3 &vertices, Color color) : m_color(color) {
   m_vertices = glm::mat3x4(vertices);
   for (int i = 0; i < 3; ++i) {
     m_vertices[i].w = 1;
   }
-  update();
+  update_vecs();
 }
+Triangle::Triangle(const glm::mat3x3 &vertices)
+    : Triangle(vertices,
+               Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
 
-yar::Triangle::Triangle(std::initializer_list<glm::vec3> list, yar::Color color)
+Triangle::Triangle(std::initializer_list<glm::vec3> list, Color color)
     : Triangle(get_mat(list), color) {}
 
-yar::Triangle::Triangle(const glm::mat3x3 &vertices)
-    : Triangle(vertices,
-               yar::Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
+Triangle::Triangle(std::initializer_list<glm::vec3> list)
+    : Triangle(get_mat(list)) {}
 
-yar::Triangle::Triangle(std::initializer_list<glm::vec3> list)
-    : Triangle(list,
-               yar::Color{(uint8_t)rand(), (uint8_t)rand(), (uint8_t)rand()}) {}
-
-yar::Color yar::Triangle::get_color() const {
+Color Triangle::get_color() const {
   return m_color;
 }
 
-glm::vec4 yar::Triangle::get_bounding_box() const {
+const glm::mat3x4 &Triangle::get_vertices() const {
+  return m_vertices;
+}
+
+void Triangle::cycle() {
+  std::swap(m_vertices[0], m_vertices[2]);
+  std::swap(m_vertices[1], m_vertices[2]);
+  std::swap(m_vecs[0], m_vecs[2]);
+  std::swap(m_vecs[1], m_vecs[2]);
+}
+
+Triangle &Triangle::operator*=(const glm::mat4 &mat) {
+  m_vertices = mat * m_vertices;
+  update_vecs();
+  return *this;
+}
+
+Triangle operator*(const glm::mat4 &mat, const Triangle &tri) {
+  Triangle result = tri;
+  result *= mat;
+  result.update_vecs();
+  return result;
+}
+
+void Triangle::project_to_3d() {
+  for (int i = 0; i < 3; ++i) {
+    m_vertices[i] /= m_vertices[i].w;
+  }
+
+  update_vecs();
+}
+
+glm::vec4 Triangle::get_bounding_box() const {
   glm::vec4 box = {1, -1, 1, -1};
   for (size_t i = 0; i < 3; ++i) {
     box[0] = std::min(box[0], m_vertices[i].x);
@@ -42,55 +73,26 @@ glm::vec4 yar::Triangle::get_bounding_box() const {
   return box;
 }
 
-glm::mat3x4 yar::Triangle::get_vertices() const {
-  return m_vertices;
-}
-
-bool yar::Triangle::is_inside(glm::vec2 point) const {
+bool Triangle::is_inside(glm::vec2 point) const {
+  // point is inside if it lies to the left of each edge
+  // (the 3rd coordinate of the cross product of AP and AB is negative for
+  // point P and edge AB)
   for (size_t i = 0; i < 3; ++i) {
     glm::vec2 p = point - glm::vec2(m_vertices[i]);
-    if (edge_function(m_vecs[i], p) > 0) {
+    if (get_signed_cp_length(m_vecs[i], p) > 0) {
       return false;
     }
   }
   return true;
 }
 
-void yar::Triangle::cycle() {
-  std::swap(m_vertices[0], m_vertices[2]);
-  std::swap(m_vertices[1], m_vertices[2]);
-  std::swap(m_vecs[0], m_vecs[2]);
-  std::swap(m_vecs[1], m_vecs[2]);
-}
-
-yar::Triangle yar::Triangle::operator*(const glm::mat4 &mat) const {
-  yar::Triangle tri(*this);
-  for (size_t i = 0; i < 3; ++i) {
-    tri.m_vertices[i] = mat * m_vertices[i];
-  }
-  tri.update();
-  return tri;
-}
-
-yar::Triangle yar::operator*(const glm::mat4 &mat, const yar::Triangle tri) {
-  return tri * mat;
-}
-
-void yar::Triangle::project_to_3d() {
-  for (int i = 0; i < 3; ++i) {
-    m_vertices[i] /= m_vertices[i].w;
-  }
-
-  update();
-}
-
-void yar::Triangle::update() {
+void Triangle::update_vecs() {
   for (int i = 0; i < 3; ++i) {
     m_vecs[i] = glm::vec3(m_vertices[(i + 1) % 3] - m_vertices[i]);
   }
 }
 
-glm::mat3x4 yar::Triangle::get_mat(std::initializer_list<glm::vec3> list) {
+glm::mat3x4 Triangle::get_mat(std::initializer_list<glm::vec3> list) {
   assert(("List must have 3 elements", list.size() == 3));
   glm::mat3x3 mat;
   int i = 0;
@@ -100,3 +102,5 @@ glm::mat3x4 yar::Triangle::get_mat(std::initializer_list<glm::vec3> list) {
   }
   return mat;
 }
+
+}  // namespace yar

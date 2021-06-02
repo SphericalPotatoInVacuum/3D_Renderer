@@ -12,18 +12,18 @@ class Application {
   void run();
 
  private:
-  yar::World m_world;
-  yar::Camera m_camera;
-  sf::RenderWindow m_window;
-  sf::Texture m_texture;
-  std::vector<sf::Uint8> m_pixels;
-  sf::Sprite m_sprite;
-  yar::Picture m_picture;
-  std::vector<yar::Object> objects;
-  yar::Renderer m_renderer;
-  yar::Screen m_screen;
   size_t m_width;
   size_t m_height;
+  sf::RenderWindow m_window;
+  yar::Screen m_screen;
+  std::vector<sf::Uint8> m_pixels;
+  yar::Camera m_camera;
+
+  yar::World m_world;
+  sf::Texture m_texture;
+  sf::Sprite m_sprite;
+  std::vector<yar::Object> objects;
+  yar::Renderer m_renderer;
   size_t m_triangle_cnt = 0;
   sf::Font m_font;
   sf::Text m_text;
@@ -36,5 +36,5 @@ class Application {
 
   void poll_events();
   void handle_key_press();
-  void update_screen(const yar::Color *colors);
+  void update_screen(const yar::Picture &picture);
 };
