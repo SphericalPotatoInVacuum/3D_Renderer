@@ -39,6 +39,7 @@
 
 ```
 git clone --recurse-submodules https://github.com/SphericalPotatoInVacuum/3D_Renderer.git
+cd 3D_Renderer
 mkdir build
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
