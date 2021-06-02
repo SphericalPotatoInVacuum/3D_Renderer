@@ -101,7 +101,8 @@ std::vector<Triangle> Renderer::clip(const std::vector<Triangle>& triangles,
             (vertices[2].z - vertices[0].z);
         ret.push_back(Triangle(
             {vertices[0], vertices[0] + a * (vertices[1] - vertices[0]),
-             vertices[0] + b * (vertices[2] - vertices[0])}));
+             vertices[0] + b * (vertices[2] - vertices[0])},
+            triangle.get_color()));
         break;
       case 2:
         // 2 vertices are inside, construct 2 new triangles
@@ -120,9 +121,11 @@ std::vector<Triangle> Renderer::clip(const std::vector<Triangle>& triangles,
 
         ret.push_back(Triangle(
             {vertices[0] + a * (vertices[1] - vertices[0]), vertices[1],
-             vertices[0] + b * (vertices[2] - vertices[0])}));
+             vertices[0] + b * (vertices[2] - vertices[0])},
+            triangle.get_color()));
         ret.push_back(Triangle({vertices[0] + b * (vertices[2] - vertices[0]),
-                                vertices[1], vertices[2]}));
+                                vertices[1], vertices[2]},
+                               triangle.get_color()));
         break;
       case 3:
         ret.push_back(triangle);
