@@ -37,10 +37,10 @@ void Renderer::draw_triangle(const Triangle& triangle, Screen* screen) {
   size_t m_width = screen->get_width();
   size_t m_height = screen->get_height();
   glm::vec4 box = triangle.get_bounding_box();
-  int64_t minx = uv_to_screen(truncate(box[0], -1.f, 1.f), m_width);
-  int64_t maxx = uv_to_screen(truncate(box[1], -1.f, 1.f), m_width);
-  int64_t miny = uv_to_screen(truncate(box[2], -1.f, 1.f), m_height);
-  int64_t maxy = uv_to_screen(truncate(box[3], -1.f, 1.f), m_height);
+  int64_t minx = uv_to_screen(truncate(box[0] - 2e-3f, -1.f, 1.f), m_width);
+  int64_t maxx = uv_to_screen(truncate(box[1] + 2e-3f, -1.f, 1.f), m_width);
+  int64_t miny = uv_to_screen(truncate(box[2] - 2e-3f, -1.f, 1.f), m_height);
+  int64_t maxy = uv_to_screen(truncate(box[3] + 2e-3f, -1.f, 1.f), m_height);
 
   assert(minx >= 0 && minx <= m_width);
   assert(maxx >= 0 && maxx <= m_width);

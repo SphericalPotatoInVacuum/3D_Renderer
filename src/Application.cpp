@@ -1,6 +1,7 @@
 #include <Application.hpp>
 #include <YAR/Color.hpp>
 #include <YAR/Renderer.hpp>
+#include <fstream>
 
 Application::Application(size_t width, size_t height)
     : m_width(width),
@@ -8,7 +9,7 @@ Application::Application(size_t width, size_t height)
       m_window(sf::VideoMode(width, height), "3D Renderer"),
       m_screen(width, height),
       m_pixels(4 * width * height),
-      m_camera({0, 0.6f, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
+      m_camera({0, 0, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
                (width + 0.f) / height) {
   sf::Clock clock;
   clock.restart();
@@ -23,23 +24,11 @@ Application::Application(size_t width, size_t height)
   }
   m_text.setFont(m_font);
 
-  std::vector<yar::Triangle> triangles = get_pyramid_carcas();
-  for (int x = -3; x <= 3; ++x) {
-    for (int z = -8; z <= 3; ++z) {
-      objects.push_back(
-          yar::Object({2 * x, 0, 2 * z}, {-3.14, 0, 0}, triangles));
-      m_triangle_cnt += triangles.size();
-    }
-  }
+  std::vector<yar::Triangle> triangles;
+  parse_off_object("resources/teapot.off", &triangles);
+  m_triangle_cnt += triangles.size();
 
-  triangles = get_plane_carcas();
-  for (int x = -3; x <= 3; ++x) {
-    for (int y = 0; y <= 6; ++y) {
-      objects.push_back(
-          yar::Object({2 * x, 2 * y, -17}, {-M_PI_2, 0, 0}, triangles));
-      m_triangle_cnt += triangles.size();
-    }
-  }
+  objects.push_back(yar::Object({-0.5f, -0.6f, 0}, {-M_PI_2, 0, 0}, triangles));
 
   for (auto &object : objects) {
     m_world.add_object(object);
@@ -67,6 +56,10 @@ void Application::run() {
        << "Triangle count: " << m_triangle_cnt;
     m_text.setString(ss.str());
     last_time = current_time;
+
+    m_camera.set_position(glm::vec3{std::sin(M_PI * current_time) * 3, 0,
+                                    std::cos(M_PI * current_time) * 3});
+    m_camera.set_rotation(glm::vec3(0, M_PI * current_time, 0));
 
     m_renderer.render(m_world, m_camera, &m_screen);
     update_screen(m_screen.get_picture());
@@ -208,4 +201,30 @@ void Application::update_screen(const yar::Picture &picture) {
     }
   }
   m_texture.update(m_pixels.data());
+}
+
+void Application::parse_off_object(const std::string &filename,
+                                   std::vector<yar::Triangle> *triangles) {
+  std::ifstream fin(filename);
+  std::string off;
+  fin >> off;
+  int vert_cnt, face_cnt, edge_cnt;
+  fin >> vert_cnt >> face_cnt >> edge_cnt;
+  std::vector<glm::vec3> vertices(vert_cnt);
+  for (auto &v : vertices) {
+    fin >> v.x >> v.y >> v.z;
+  }
+  for (int i = 0; i < face_cnt; ++i) {
+    int n;
+    fin >> n;
+    std::vector<int> idx(n);
+    for (int &x : idx) {
+      fin >> x;
+    }
+    for (int j = 0; j < n - 2; ++j) {
+      triangles->push_back(
+          {{vertices[idx[j + 2]], vertices[idx[j + 1]], vertices[idx[0]]},
+           yar::Color::White * ((rand() + 0.f) / RAND_MAX / 4 + 0.75f)});
+    }
+  }
 }

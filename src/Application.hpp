@@ -4,6 +4,7 @@
 #include <YAR/Screen.hpp>
 #include <YAR/World.hpp>
 #include <sstream>
+#include <vector>
 
 class Application {
  public:
@@ -37,4 +38,6 @@ class Application {
   void poll_events();
   void handle_key_press();
   void update_screen(const yar::Picture &picture);
+  void parse_off_object(const std::string &filename,
+                        std::vector<yar::Triangle> *triangles);
 };
