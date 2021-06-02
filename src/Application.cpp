@@ -18,7 +18,7 @@ Application::Application(size_t width, size_t height)
   m_texture.create(width, height);
 
   m_font;
-  if (!m_font.loadFromFile("arial.ttf")) {
+  if (!m_font.loadFromFile("resources/arial.ttf")) {
     _Exit(1);
   }
   m_text.setFont(m_font);
