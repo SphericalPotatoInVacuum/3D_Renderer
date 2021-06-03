@@ -7,8 +7,17 @@
 
 namespace yar {
 
+/**
+ * @brief Main class responsible for rendering the scene
+ */
 class Renderer {
  public:
+  /*!
+   * @brief Renders the scene to the screen object
+   * @param world Holds the objects that will be rendered
+   * @param camera The rendering will be done from the camera's point of view
+   * @param screen The resulting image will be written to this screen
+   */
   void render(const yar::World& world, const yar::Camera& camera,
               yar::Screen* screen);
 

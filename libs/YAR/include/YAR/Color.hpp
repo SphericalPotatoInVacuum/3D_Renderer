@@ -5,11 +5,34 @@ namespace yar {
 
 using ColorType = uint8_t;
 
+/**
+ * @brief The Color class is used to make manipulations with the colors of the
+ * pixels easier
+ *
+ */
 class Color {
  public:
+  /**
+   * @brief Default constructor
+   *
+   */
   Color() = default;
+
+  /**
+   * @brief Construct a new Color object
+   *
+   * @param r_ Red component
+   * @param g_ Green component
+   * @param b_ Blue component
+   */
   Color(ColorType r_, ColorType g_, ColorType b_);
 
+  /**
+   * @brief Multiply each component by the multiplier
+   *
+   * @param multiplier
+   * @return Color&
+   */
   Color& operator*=(float multiplier);
 
   friend Color operator*(const Color& color, float multiplier);
@@ -24,6 +47,10 @@ class Color {
   ColorType g = 0;
   ColorType b = 0;
 
+  /**
+   * @brief Frequently used colors
+   *
+   */
   static const Color Red;
   static const Color Green;
   static const Color Blue;

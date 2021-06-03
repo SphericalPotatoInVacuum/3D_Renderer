@@ -1,0 +1,4 @@
+<map id="yar::Object" name="yar::Object">
+<area shape="rect" id="node1" title="Object represents the 3D object in the scene." alt="" coords="5,80,92,107"/>
+<area shape="rect" id="node2" href="$classyar_1_1_entity.html" title="Entity class is a base class for every object with position and rotation (Object and Camera)" alt="" coords="7,5,90,32"/>
+</map>

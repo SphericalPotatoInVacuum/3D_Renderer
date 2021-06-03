@@ -9,7 +9,7 @@ Application::Application(size_t width, size_t height)
       m_window(sf::VideoMode(width, height), "3D Renderer"),
       m_screen(width, height),
       m_pixels(4 * width * height),
-      m_camera({0, 0, 10.2f}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
+      m_camera({0, 0, 5.f}, {0, 0, 0}, glm::radians(70.0f), 0.1f, 100.0f,
                (width + 0.f) / height) {
   sf::Clock clock;
   clock.restart();
@@ -57,9 +57,9 @@ void Application::run() {
     m_text.setString(ss.str());
     last_time = current_time;
 
-    m_camera.set_position(glm::vec3{std::sin(M_PI * current_time) * 3, 0,
-                                    std::cos(M_PI * current_time) * 3});
-    m_camera.set_rotation(glm::vec3(0, M_PI * current_time, 0));
+    // m_camera.set_position(glm::vec3{std::sin(M_PI * current_time) * 3, 0,
+    //                                 std::cos(M_PI * current_time) * 3});
+    // m_camera.set_rotation(glm::vec3(0, M_PI * current_time, 0));
 
     m_renderer.render(m_world, m_camera, &m_screen);
     update_screen(m_screen.get_picture());
@@ -178,16 +178,16 @@ void Application::handle_key_press() {
     m_camera.move({0, 0, 0.2});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-    m_camera.rotate({M_PI / 32, 0, 0});
+    m_camera.rotate({M_PI / 16, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
-    m_camera.rotate({-M_PI / 32, 0, 0});
+    m_camera.rotate({-M_PI / 16, 0, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
-    m_camera.rotate({0, M_PI / 32, 0});
+    m_camera.rotate({0, M_PI / 16, 0});
   }
   if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
-    m_camera.rotate({0, -M_PI / 32, 0});
+    m_camera.rotate({0, -M_PI / 16, 0});
   }
 }
 
