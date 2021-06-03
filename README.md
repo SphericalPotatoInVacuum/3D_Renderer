@@ -50,3 +50,7 @@ cmake --build build
 ```
 ./build/app
 ```
+
+## Документация
+
+Документация к библиотеке находится по этой [ссылке](https://sphericalpotatoinvacuum.github.io/3D_Renderer/)
