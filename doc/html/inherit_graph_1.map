@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classyar_1_1_entity.html" title="Entity class is a base class for every object with position and rotation (Object and Camera)" alt="" coords="5,31,88,57"/>
+<area shape="rect" id="node2" href="$classyar_1_1_camera.html" title="The camera class represents the virtual camera. The renderer will render the scene from its point of ..." alt="" coords="136,5,231,32"/>
+<area shape="rect" id="node3" href="$classyar_1_1_object.html" title="Object represents the 3D object in the scene." alt="" coords="140,56,227,83"/>
+</map>
