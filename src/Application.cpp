@@ -57,10 +57,6 @@ void Application::run() {
     m_text.setString(ss.str());
     last_time = current_time;
 
-    // m_camera.set_position(glm::vec3{std::sin(M_PI * current_time) * 3, 0,
-    //                                 std::cos(M_PI * current_time) * 3});
-    // m_camera.set_rotation(glm::vec3(0, M_PI * current_time, 0));
-
     m_renderer.render(m_world, m_camera, &m_screen);
     update_screen(m_screen.get_picture());
     m_sprite.setTexture(m_texture);
